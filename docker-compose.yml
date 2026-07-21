@@ -1,0 +1,21 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: waslah-fashion-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: waslah_fashion
+    ports:
+      # 3307 on the host so this can run alongside the legacy PHP stack on 3306.
+      - "3307:3306"
+    volumes:
+      - waslah-fashion-db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  waslah-fashion-db:
