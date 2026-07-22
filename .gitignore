@@ -43,7 +43,11 @@ next-env.d.ts
 # Prisma client is generated from schema.prisma — run `npx prisma generate`
 /src/generated/
 
-# Runtime uploads (product images, receipts, employee photos)
+# Runtime uploads (product images, receipts, employee photos).
+# Served by the /uploads/[...path] route handler, NOT from public/ (next start
+# won't serve files added to public/ after boot).
+/uploads/*
+!/uploads/.gitkeep
 /public/uploads/*
 !/public/uploads/.gitkeep
 

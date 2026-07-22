@@ -12,10 +12,13 @@ export type UploadResult =
   | { ok: false; error: string };
 
 /**
- * Store an uploaded image under `public/uploads/<dir>/` and return the
+ * Store an uploaded image under `<cwd>/uploads/<dir>/` and return the
  * upload-relative path (e.g. `products/ab12….jpg`) that `imageUrl()` resolves.
  *
- * Local-disk storage matches the legacy app's behaviour. On a multi-instance
+ * Deliberately NOT `public/uploads`: `next start` snapshots `public/` at boot
+ * and never serves files written there at runtime (they 404), which then makes
+ * next/image return 400. Files here are served by the `/uploads/[...path]`
+ * route handler, which reads from disk on every request. On a multi-instance
  * or read-only deployment this should be swapped for object storage — the
  * return contract stays the same.
  */
@@ -38,7 +41,7 @@ export async function saveUpload(file: File, dir = "products"): Promise<UploadRe
 
   const safeDir = dir.replace(/[^a-z0-9-]/gi, "") || "products";
   const filename = `${Date.now()}-${randomBytes(6).toString("hex")}.${ext}`;
-  const destDir = path.join(process.cwd(), "public", "uploads", safeDir);
+  const destDir = path.join(process.cwd(), "uploads", safeDir);
 
   await mkdir(destDir, { recursive: true });
   await writeFile(
