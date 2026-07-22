@@ -53,7 +53,8 @@ export type BrandProfile = {
 const WASLAH_LOGOS = {
   lockup: "/brand/waslah-lockup.png",
   wordmark: "/brand/waslah-wordmark.png",
-  icon: "/brand/waslah-logo.png",
+  // Tight square mark (no tagline) — legible as a favicon / app icon.
+  icon: "/brand/waslah-icon.png",
 };
 
 /** All available brand profiles, keyed by their `.env` name (lower-case). */

@@ -14,7 +14,11 @@ export const metadata: Metadata = {
     template: `%s · ${SITE.name}`,
   },
   description: `${SITE.name} — ${SITE.tagline}. Quality fashion for men, women and children.`,
-  icons: { icon: BRAND.logo.icon },
+  icons: {
+    icon: BRAND.logo.icon,
+    shortcut: BRAND.logo.icon,
+    apple: BRAND.logo.icon,
+  },
   openGraph: {
     title: `${SITE.name} — ${SITE.tagline}`,
     description: `${SITE.name} — ${SITE.tagline}.`,
