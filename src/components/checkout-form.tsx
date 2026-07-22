@@ -265,7 +265,7 @@ export function CheckoutForm({ addresses, couriers, subtotal, shipping }: Props)
           <p
             className={cn(
               "mt-2 text-xs",
-              couponState.ok ? "text-accent-foreground" : "text-destructive",
+              couponState.ok ? "text-primary" : "text-destructive",
             )}
           >
             {couponState.message}

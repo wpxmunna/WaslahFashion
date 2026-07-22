@@ -37,8 +37,8 @@ export default async function OrderPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6 lg:py-20">
       <div className="text-center">
-        <span className="mx-auto grid size-14 place-items-center rounded-full bg-accent/20">
-          <Check className="size-7 text-accent-foreground" strokeWidth={2} />
+        <span className="mx-auto grid size-14 place-items-center rounded-full bg-primary/15">
+          <Check className="size-7 text-primary" strokeWidth={2} />
         </span>
         <h1 className="mt-6 font-display text-[clamp(2rem,4vw,2.75rem)] leading-tight">
           Thank you — your order is in
@@ -103,7 +103,7 @@ export default async function OrderPage({ params }: Props) {
             <dd className="tabular-nums">{formatPrice(order.subtotal)}</dd>
           </div>
           {Number(order.discountAmount) > 0 && (
-            <div className="flex justify-between text-accent-foreground">
+            <div className="flex justify-between text-primary">
               <dt>Discount {order.couponCode && `(${order.couponCode})`}</dt>
               <dd className="tabular-nums">−{formatPrice(order.discountAmount)}</dd>
             </div>

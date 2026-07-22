@@ -111,12 +111,7 @@ export function ProductCard({ product, index = 0, className }: Props) {
           </Link>
         </h3>
         <p className="mt-1.5 flex items-baseline gap-2">
-          <span
-            className={cn(
-              "font-display text-[0.95rem] font-bold tabular-nums",
-              onSale && "text-accent-foreground",
-            )}
-          >
+          <span className="font-display text-[0.95rem] font-bold tabular-nums">
             {formatPrice(price)}
           </span>
           {onSale && (

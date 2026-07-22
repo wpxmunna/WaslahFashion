@@ -75,7 +75,7 @@ export default async function CartPage() {
                 <dt className="text-muted-foreground">Delivery</dt>
                 <dd className="tabular-nums">
                   {totals.shipping === 0 ? (
-                    <span className="text-accent-foreground">Free</span>
+                    <span className="font-medium text-primary">Free</span>
                   ) : (
                     formatPrice(totals.shipping)
                   )}
