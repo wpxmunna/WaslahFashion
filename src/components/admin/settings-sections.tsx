@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import {
   updateContactSettings,
   updateGeneralSettings,
+  updateHomepageSettings,
   updatePaymentSettings,
   updateShippingSettings,
   updateSocialSettings,
@@ -107,6 +108,29 @@ export function GeneralSettings({ values }: { values: SettingsMap }) {
             className="sm:col-span-2"
           />
         </div>
+      )}
+    </SettingsSection>
+  );
+}
+
+export function HomepageSettings({ values }: { values: SettingsMap }) {
+  return (
+    <SettingsSection
+      id="homepage"
+      title="Homepage"
+      description="The scrolling ribbon under the hero."
+      action={updateHomepageSettings}
+    >
+      {(e) => (
+        <TextareaField
+          name="marquee_items"
+          label="Marquee ribbon"
+          rows={6}
+          defaultValue={values.marquee_items ?? ""}
+          errors={e.marquee_items}
+          hint="One phrase per line. They scroll across the homepage under the hero, separated by ✦. Leave blank to hide the ribbon."
+          placeholder={"New season drop\nAuthenticity in every stitch\nFree delivery over BDT 5,000"}
+        />
       )}
     </SettingsSection>
   );

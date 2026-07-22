@@ -2,6 +2,7 @@ import { PageHeader, Panel } from "@/components/admin/ui";
 import {
   ContactSettings,
   GeneralSettings,
+  HomepageSettings,
   PaymentSettings,
   ShippingSettings,
   SocialSettings,
@@ -10,6 +11,7 @@ import {
 import { requireAdmin } from "@/lib/admin/guard";
 import {
   CURRENCY,
+  DEFAULT_MARQUEE,
   DEFAULT_SHIPPING_COST,
   DEFAULT_STORE_ID,
   FREE_SHIPPING_THRESHOLD,
@@ -21,6 +23,7 @@ export const metadata = { title: "Settings" };
 
 const SECTIONS = [
   { id: "general", label: "General" },
+  { id: "homepage", label: "Homepage" },
   { id: "contact", label: "Contact" },
   { id: "shipping", label: "Shipping" },
   { id: "payment", label: "Payment" },
@@ -43,6 +46,7 @@ export default async function AdminSettingsPage() {
   // Seed the general section from code so a fresh install is not blank.
   values.site_name ??= SITE.name;
   values.site_tagline ??= SITE.tagline;
+  values.marquee_items ??= DEFAULT_MARQUEE.join("\n");
 
   return (
     <>
@@ -69,6 +73,7 @@ export default async function AdminSettingsPage() {
 
       <div className="space-y-6">
         <GeneralSettings values={values} />
+        <HomepageSettings values={values} />
         <ContactSettings values={values} />
         <ShippingSettings
           values={values}

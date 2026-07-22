@@ -84,6 +84,33 @@ export async function updateGeneralSettings(
   return done("General settings saved.");
 }
 
+/* --------------------------------------------------------------- homepage */
+
+const homepageSchema = z.object({
+  marquee_items: z.string().trim().max(2000).optional(),
+});
+
+export async function updateHomepageSettings(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requireAdmin();
+
+  const parsed = homepageSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return invalid(parsed.error);
+
+  // One phrase per line; trim, drop blanks, cap the count.
+  const items = (parsed.data.marquee_items ?? "")
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 20);
+
+  await writeSettings("homepage", [{ key: "marquee_items", value: items.join("\n") }]);
+
+  return done("Homepage settings saved.");
+}
+
 /* ---------------------------------------------------------------- contact */
 
 const contactSchema = z.object({

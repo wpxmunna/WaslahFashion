@@ -4,27 +4,39 @@ import { SafeImage } from "@/components/safe-image";
 
 import { HeroCarousel, type HeroSlide } from "@/components/hero-carousel";
 import { ProductCard } from "@/components/product-card";
-import { DEFAULT_STORE_ID } from "@/lib/config";
+import { DEFAULT_MARQUEE, DEFAULT_STORE_ID } from "@/lib/config";
 import { imageUrl } from "@/lib/images";
 import { toNumber } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import { getCategoryTree, getFeaturedProducts, getNewArrivals } from "@/lib/queries/products";
 
 export default async function HomePage() {
-  const [sliderRows, categories, featured, newArrivals, lookbook] = await Promise.all([
-    prisma.slider.findMany({
-      where: { storeId: DEFAULT_STORE_ID, isActive: true },
-      orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
-    }),
-    getCategoryTree(),
-    getFeaturedProducts(8),
-    getNewArrivals(8),
-    prisma.lookbookItem.findMany({
-      where: { storeId: DEFAULT_STORE_ID, isActive: true },
-      orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
-      take: 5,
-    }),
-  ]);
+  const [sliderRows, categories, featured, newArrivals, lookbook, marqueeSetting] =
+    await Promise.all([
+      prisma.slider.findMany({
+        where: { storeId: DEFAULT_STORE_ID, isActive: true },
+        orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+      }),
+      getCategoryTree(),
+      getFeaturedProducts(8),
+      getNewArrivals(8),
+      prisma.lookbookItem.findMany({
+        where: { storeId: DEFAULT_STORE_ID, isActive: true },
+        orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
+        take: 5,
+      }),
+      prisma.setting.findFirst({
+        where: { storeId: DEFAULT_STORE_ID, key: "marquee_items" },
+        select: { value: true },
+      }),
+    ]);
+
+  // Admin-editable (Settings → Homepage); falls back to the defaults, and an
+  // explicitly-emptied setting hides the ribbon.
+  const marqueeItems =
+    marqueeSetting?.value === undefined || marqueeSetting.value === null
+      ? DEFAULT_MARQUEE
+      : marqueeSetting.value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
 
   const slides: HeroSlide[] = sliderRows.map((s) => ({
     id: s.id,
@@ -45,7 +57,7 @@ export default async function HomePage() {
     <>
       <HeroCarousel slides={slides} />
 
-      <Marquee />
+      {marqueeItems.length > 0 && <Marquee phrases={marqueeItems} />}
 
       {/* Categories — asymmetric editorial tiles */}
       <section className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
@@ -231,14 +243,8 @@ function SectionHead({
  * The track holds two identical copies so the -50% loop is seamless; hovering
  * pauses it, and reduced-motion users get a static row.
  */
-function Marquee() {
-  const phrases = [
-    "New season drop",
-    "Authenticity in every stitch",
-    "Handloom & block print",
-    "Free delivery over BDT 5,000",
-    "Sourced directly from makers",
-  ];
+function Marquee({ phrases }: { phrases: string[] }) {
+  // Two copies so the -50% translate loops seamlessly.
   const items = [...phrases, ...phrases];
 
   return (

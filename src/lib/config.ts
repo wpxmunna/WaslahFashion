@@ -36,6 +36,15 @@ export const DEFAULT_COUNTRY = "Bangladesh";
 
 export const DEFAULT_STORE_ID = 1;
 
+/** Scrolling marquee under the hero. Editable at Admin → Settings → Homepage. */
+export const DEFAULT_MARQUEE = [
+  "New season drop",
+  "Authenticity in every stitch",
+  "Handloom & block print",
+  "Free delivery over BDT 5,000",
+  "Sourced directly from makers",
+];
+
 export const SORT_OPTIONS = [
   { value: "newest", label: "Newest" },
   { value: "popular", label: "Most popular" },
