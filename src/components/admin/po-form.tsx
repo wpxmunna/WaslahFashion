@@ -50,24 +50,6 @@ export type PoFormValues = {
 
 type EditorLine = PoLineValues & { key: number };
 
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-export function emptyPoValues(supplierId?: number): PoFormValues {
-  return {
-    supplierId: supplierId ?? null,
-    orderDate: today(),
-    expectedDate: "",
-    status: "DRAFT",
-    taxAmount: "0",
-    shippingAmount: "0",
-    discountAmount: "0",
-    notes: "",
-    lines: [],
-  };
-}
-
 const blankLine = (key: number): EditorLine => ({
   key,
   productId: null,

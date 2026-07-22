@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/admin/ui";
-import { PoForm, emptyPoValues } from "@/components/admin/po-form";
+import { PoForm } from "@/components/admin/po-form";
+import { emptyPoValues } from "@/components/admin/po-form-constants";
 import { DEFAULT_STORE_ID } from "@/lib/config";
 import { toNumber } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
