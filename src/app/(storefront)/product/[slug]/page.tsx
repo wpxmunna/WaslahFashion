@@ -196,6 +196,17 @@ export default async function ProductPage({ params }: Props) {
               </AccordionItem>
             )}
 
+            {product.material && (
+              <AccordionItem value="material">
+                <AccordionTrigger className="kicker">Material &amp; care</AccordionTrigger>
+                <AccordionContent>
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                    {product.material}
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
             <AccordionItem value="details">
               <AccordionTrigger className="kicker">Details</AccordionTrigger>
               <AccordionContent>

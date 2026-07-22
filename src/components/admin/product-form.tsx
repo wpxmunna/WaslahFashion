@@ -24,6 +24,7 @@ export type ProductFormValues = {
   slug: string;
   categoryId: number | null;
   shortDescription: string;
+  material: string;
   description: string;
   price: string;
   salePrice: string;
@@ -102,6 +103,17 @@ export function ProductForm({
                 rows={7}
                 defaultValue={values.description}
                 errors={e.description}
+                className="sm:col-span-2"
+              />
+              <TextareaField
+                name="material"
+                label="Material & care"
+                rows={3}
+                maxLength={2000}
+                defaultValue={values.material}
+                errors={e.material}
+                hint="Fabric/composition and care instructions. Shown under the product."
+                placeholder={"100% Cotton handloom.\nWash cold, do not bleach, iron on low."}
                 className="sm:col-span-2"
               />
             </div>

@@ -12,6 +12,7 @@ export const emptyProductValues: ProductFormValues = {
   slug: "",
   categoryId: null,
   shortDescription: "",
+  material: "",
   description: "",
   price: "",
   salePrice: "",
