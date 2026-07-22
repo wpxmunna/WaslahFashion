@@ -235,6 +235,8 @@ model Product {
   status            ProductStatus @default(ACTIVE)
   metaTitle         String?       @map("meta_title") @db.VarChar(255)
   metaDescription   String?       @map("meta_description") @db.VarChar(500)
+  // Optional size guide: { columns: string[], rows: string[][] }. Admin-edited.
+  sizeChart         Json?         @map("size_chart")
   views             Int           @default(0)
   createdAt         DateTime      @default(now()) @map("created_at")
   updatedAt         DateTime      @updatedAt @map("updated_at")

@@ -217,6 +217,7 @@ exports.Prisma.ProductScalarFieldEnum = {
   status: 'status',
   metaTitle: 'metaTitle',
   metaDescription: 'metaDescription',
+  sizeChart: 'sizeChart',
   views: 'views',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1156,6 +1157,17 @@ exports.Prisma.CategoryOrderByRelevanceFieldEnum = {
   icon: 'icon'
 };
 
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
 exports.Prisma.ProductOrderByRelevanceFieldEnum = {
   name: 'name',
   slug: 'slug',
@@ -1225,17 +1237,6 @@ exports.Prisma.OrderItemOrderByRelevanceFieldEnum = {
   productName: 'productName',
   productSku: 'productSku',
   variantInfo: 'variantInfo'
-};
-
-exports.Prisma.JsonNullValueFilter = {
-  DbNull: Prisma.DbNull,
-  JsonNull: Prisma.JsonNull,
-  AnyNull: Prisma.AnyNull
-};
-
-exports.Prisma.QueryMode = {
-  default: 'default',
-  insensitive: 'insensitive'
 };
 
 exports.Prisma.PaymentOrderByRelevanceFieldEnum = {

@@ -11,6 +11,7 @@ import { DEFAULT_STORE_ID } from "@/lib/config";
 import { imageUrl } from "@/lib/images";
 import { toNumber } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
+import { coerceSizeChart, sizeChartToText } from "@/lib/size-chart";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -99,6 +100,7 @@ export default async function EditProductPage({ params }: Props) {
           isNew: product.isNew,
           metaTitle: product.metaTitle ?? "",
           metaDescription: product.metaDescription ?? "",
+          sizeChart: sizeChartToText(coerceSizeChart(product.sizeChart)),
         }}
         categories={categories.map((c) => ({
           id: c.id,

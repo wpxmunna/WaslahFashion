@@ -13,6 +13,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { WishlistButton } from "@/components/wishlist-button";
+import { SizeGuide } from "@/components/size-guide";
+import { coerceSizeChart } from "@/lib/size-chart";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getShippingSettings } from "@/lib/settings";
@@ -70,6 +72,7 @@ export default async function ProductPage({ params }: Props) {
 
   const price = effectivePrice(product.price, product.salePrice);
   const onSale = isOnSale(product.price, product.salePrice);
+  const sizeChart = coerceSizeChart(product.sizeChart);
 
   const images: GalleryImage[] = product.images
     .map((img) => ({ id: img.id, src: imageUrl(img.path)!, alt: img.altText ?? product.name }))
@@ -158,6 +161,12 @@ export default async function ProductPage({ params }: Props) {
                 className="w-full"
               />
             </div>
+
+            {sizeChart && (
+              <div className="mt-3">
+                <SizeGuide chart={sizeChart} />
+              </div>
+            )}
           </div>
 
           <ul className="mt-8 space-y-3 border-t border-border pt-6 text-sm text-muted-foreground">

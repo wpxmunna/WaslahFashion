@@ -38,6 +38,7 @@ export type ProductFormValues = {
   isNew: boolean;
   metaTitle: string;
   metaDescription: string;
+  sizeChart: string;
 };
 
 export function ProductForm({
@@ -179,6 +180,23 @@ export function ProductForm({
                 min="0"
                 defaultValue={values.weight}
                 errors={e.weight}
+              />
+            </div>
+          </Panel>
+
+          <Panel
+            title="Size guide"
+            description="Optional. First line is the column headings, then one line per size."
+          >
+            <div className="p-5">
+              <TextareaField
+                name="sizeChart"
+                label="Size chart"
+                rows={6}
+                defaultValue={values.sizeChart}
+                errors={e.sizeChart}
+                hint="One row per line; separate cells with commas (or paste from a spreadsheet). Leave blank for no size guide."
+                placeholder={"Size, Chest, Length, Sleeve\nS, 38, 27, 24\nM, 40, 28, 24.5\nL, 42, 29, 25"}
               />
             </div>
           </Panel>

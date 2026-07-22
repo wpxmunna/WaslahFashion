@@ -26,4 +26,5 @@ export const emptyProductValues: ProductFormValues = {
   isNew: false,
   metaTitle: "",
   metaDescription: "",
+  sizeChart: "",
 };
