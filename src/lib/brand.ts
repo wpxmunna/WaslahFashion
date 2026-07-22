@@ -118,20 +118,35 @@ export const BRAND = {
   },
 } as const;
 
+const DARK_TEXT = "#141414";
+const LIGHT_TEXT = "#ffffff";
+
 /**
- * Choose near-black or white text for legibility on a background colour.
- * Uses WCAG relative luminance for hex/rgb inputs; unparseable formats fall
- * back to white, which suits the typically-dark brand primary.
+ * Choose near-black or white text for legibility on a background colour, by
+ * whichever gives the higher WCAG contrast ratio. Unparseable formats fall back
+ * to white, which suits the typically-dark brand primary.
+ *
+ * (A previous version used a plain `luminance > 0.45` threshold. Gold #D4AF37
+ * sits at luminance ~0.449 — just under it — so it wrongly picked white,
+ * turning `--accent-foreground` white and hiding accent-coloured text on light
+ * surfaces. Comparing contrast against both fixes that class of bug.)
  */
 export function readableText(background: string): string {
   const rgb = parseColor(background);
-  if (!rgb) return "#ffffff";
-  const [r, g, b] = rgb.map((c) => {
+  if (!rgb) return LIGHT_TEXT;
+  const bg = relativeLuminance(rgb);
+  const dark = relativeLuminance([20, 20, 20]); // #141414
+  const contrastDark = (bg + 0.05) / (dark + 0.05);
+  const contrastLight = (1 + 0.05) / (bg + 0.05);
+  return contrastDark >= contrastLight ? DARK_TEXT : LIGHT_TEXT;
+}
+
+function relativeLuminance([r, g, b]: [number, number, number]): number {
+  const [rl, gl, bl] = [r, g, b].map((c) => {
     const s = c / 255;
     return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
   });
-  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return luminance > 0.45 ? "#141414" : "#ffffff";
+  return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
 }
 
 function parseColor(input: string): [number, number, number] | null {
