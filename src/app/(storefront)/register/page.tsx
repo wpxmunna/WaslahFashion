@@ -11,8 +11,9 @@ export default async function RegisterPage() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-20 sm:px-6">
-      <h1 className="font-display text-4xl">Create an account</h1>
-      <p className="mt-2 text-muted-foreground">
+      <h1 className="display-title text-[clamp(2.2rem,5vw,3rem)]">Create an account</h1>
+      <div className="rule-gold mt-4" />
+      <p className="mt-4 text-muted-foreground">
         Save your addresses and track every order.
       </p>
       <div className="mt-10">

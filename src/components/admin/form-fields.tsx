@@ -13,12 +13,12 @@ import { cn } from "@/lib/utils";
    ------------------------------------------------------------------------- */
 
 const controlClass =
-  "mt-1.5 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition-colors";
+  "mt-1.5 w-full rounded-md border bg-background px-3 py-2.5 text-sm outline-none transition-[color,box-shadow,border-color] focus:ring-2";
 
 function stateClass(hasError: boolean) {
   return hasError
-    ? "border-destructive focus:border-destructive"
-    : "border-border focus:border-primary";
+    ? "border-destructive focus:border-destructive focus:ring-destructive/15"
+    : "border-border focus:border-primary focus:ring-primary/15";
 }
 
 export function Field({

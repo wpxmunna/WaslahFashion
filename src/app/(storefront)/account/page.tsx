@@ -47,7 +47,7 @@ export default async function AccountOverviewPage() {
 
       <section>
         <div className="flex items-end justify-between gap-4">
-          <h2 className="font-display text-2xl">Recent orders</h2>
+          <h2 className="font-display text-2xl font-bold tracking-tight">Recent orders</h2>
           {recentOrders.length > 0 && (
             <Link href="/account/orders" className="link-wipe kicker">
               View all
@@ -104,7 +104,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-background p-5">
       <dt className="kicker text-muted-foreground">{label}</dt>
-      <dd className="mt-2 font-display text-2xl tabular-nums">{value}</dd>
+      <dd className="mt-2 font-display text-[1.75rem] font-bold tabular-nums">{value}</dd>
     </div>
   );
 }

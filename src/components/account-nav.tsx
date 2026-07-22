@@ -33,7 +33,7 @@ export function AccountNav() {
                 className={cn(
                   "block whitespace-nowrap py-2 text-sm transition-colors lg:border-l-2 lg:pl-3",
                   active
-                    ? "text-foreground lg:border-foreground"
+                    ? "font-semibold text-foreground lg:border-[var(--accent)]"
                     : "text-muted-foreground hover:text-foreground lg:border-transparent",
                 )}
               >

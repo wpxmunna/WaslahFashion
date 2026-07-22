@@ -42,7 +42,12 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
         required
       />
 
-      <Button type="submit" size="lg" disabled={pending} className="h-11 w-full rounded-none">
+      <Button
+        type="submit"
+        size="lg"
+        disabled={pending}
+        className="h-12 w-full rounded-none text-[0.8125rem] font-semibold uppercase tracking-[0.1em]"
+      >
         {pending ? <Loader2 className="size-4 animate-spin" /> : "Sign in"}
       </Button>
 
@@ -98,7 +103,12 @@ export function RegisterForm() {
         required
       />
 
-      <Button type="submit" size="lg" disabled={pending} className="h-11 w-full rounded-none">
+      <Button
+        type="submit"
+        size="lg"
+        disabled={pending}
+        className="h-12 w-full rounded-none text-[0.8125rem] font-semibold uppercase tracking-[0.1em]"
+      >
         {pending ? <Loader2 className="size-4 animate-spin" /> : "Create account"}
       </Button>
 

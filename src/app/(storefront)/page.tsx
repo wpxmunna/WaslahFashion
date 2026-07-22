@@ -45,6 +45,8 @@ export default async function HomePage() {
     <>
       <HeroCarousel slides={slides} />
 
+      <Marquee />
+
       {/* Categories — asymmetric editorial tiles */}
       <section className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
         <SectionHead
@@ -84,11 +86,11 @@ export default async function HomePage() {
                     {category._count.products}{" "}
                     {category._count.products === 1 ? "piece" : "pieces"}
                   </p>
-                  <h3 className="mt-1.5 flex items-center gap-2 font-display text-3xl">
+                  <h3 className="mt-1.5 flex items-center gap-2 font-display text-[1.9rem] font-bold uppercase tracking-tight">
                     {category.name}
                     <ArrowRight
-                      className="size-5 -translate-x-2 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100"
-                      strokeWidth={1.5}
+                      className="size-6 -translate-x-2 opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100"
+                      strokeWidth={2}
                     />
                   </h3>
                 </div>
@@ -152,7 +154,7 @@ export default async function HomePage() {
                       <>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent opacity-70 transition-opacity group-hover:opacity-95" />
                         <p
-                          className={`absolute bottom-5 left-5 right-5 font-display text-white ${
+                          className={`absolute bottom-5 left-5 right-5 font-display font-bold uppercase tracking-tight text-white ${
                             feature ? "text-2xl lg:text-3xl" : "text-lg"
                           }`}
                         >
@@ -203,16 +205,56 @@ function SectionHead({
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div>
         <p className="kicker text-[color:var(--accent)]">{kicker}</p>
-        <h2 className="mt-2 font-display text-[clamp(1.9rem,4vw,3rem)] leading-tight">
+        <h2 className="display-title mt-3 text-[clamp(2.1rem,5vw,3.75rem)]">
           {title}
         </h2>
-        <div className="rule-gold mt-4" />
+        <div className="rule-gold mt-5" />
       </div>
       {href && linkLabel && (
-        <Link href={href} className="link-wipe kicker pb-1">
-          {linkLabel}
+        <Link
+          href={href}
+          className="group inline-flex items-center gap-1.5 pb-1 text-[0.8125rem] font-semibold uppercase tracking-[0.12em]"
+        >
+          <span className="link-wipe">{linkLabel}</span>
+          <ArrowRight
+            className="size-4 transition-transform duration-300 group-hover:translate-x-1"
+            strokeWidth={2}
+          />
         </Link>
       )}
+    </div>
+  );
+}
+
+/**
+ * Scrolling brand strip beneath the hero — a signature bold-modern element.
+ * The track holds two identical copies so the -50% loop is seamless; hovering
+ * pauses it, and reduced-motion users get a static row.
+ */
+function Marquee() {
+  const phrases = [
+    "New season drop",
+    "Authenticity in every stitch",
+    "Handloom & block print",
+    "Free delivery over BDT 5,000",
+    "Sourced directly from makers",
+  ];
+  const items = [...phrases, ...phrases];
+
+  return (
+    <div className="marquee-pause overflow-hidden border-y border-border bg-foreground py-4 text-background">
+      <div className="mask-x-fade flex">
+        <div className="flex w-max shrink-0 animate-marquee items-center">
+          {items.map((phrase, i) => (
+            <span key={i} className="flex items-center">
+              <span className="whitespace-nowrap px-6 text-sm font-semibold uppercase tracking-[0.16em]">
+                {phrase}
+              </span>
+              <span className="text-[var(--accent)]">✦</span>
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

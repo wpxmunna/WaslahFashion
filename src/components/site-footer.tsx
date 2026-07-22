@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
+import { BRAND } from "@/lib/brand";
 import { DEFAULT_STORE_ID, SITE } from "@/lib/config";
 import { getCategoryTree } from "@/lib/queries/products";
 import { ThemeToggle } from "./theme-toggle";
@@ -33,7 +34,7 @@ export async function SiteFooter() {
         <div className="grid gap-12 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div className="max-w-sm">
             <Image
-              src="/brand/waslah-lockup.png"
+              src={BRAND.logo.lockup}
               alt={`${SITE.name} — ${SITE.tagline}`}
               width={1958}
               height={732}

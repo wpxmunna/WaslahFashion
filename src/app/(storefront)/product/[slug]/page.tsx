@@ -122,7 +122,7 @@ export default async function ProductPage({ params }: Props) {
             <p className="kicker text-muted-foreground">{product.category.name}</p>
           )}
 
-          <h1 className="mt-2 font-display text-[clamp(1.9rem,3.5vw,2.75rem)] leading-tight">
+          <h1 className="mt-2 font-display text-[clamp(2rem,3.8vw,2.9rem)] font-bold leading-[1.05] tracking-tight">
             {product.name}
           </h1>
 
@@ -219,7 +219,7 @@ export default async function ProductPage({ params }: Props) {
       {related.length > 0 && (
         <section className="mt-24 lg:mt-32">
           <div className="rule-fade" />
-          <h2 className="mt-10 font-display text-[clamp(1.6rem,3vw,2.25rem)]">
+          <h2 className="display-title mt-10 text-[clamp(1.8rem,3.5vw,2.75rem)]">
             You may also like
           </h2>
           <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4">

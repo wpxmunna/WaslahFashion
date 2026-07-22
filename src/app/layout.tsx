@@ -1,23 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 
 import { SITE } from "@/lib/config";
+import { BRAND, brandCssVars } from "@/lib/brand";
+import { FONT_CLASS } from "./fonts";
 import "./globals.css";
-
-// Same pairing as the existing PHP site.
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
@@ -26,7 +14,7 @@ export const metadata: Metadata = {
     template: `%s · ${SITE.name}`,
   },
   description: `${SITE.name} — ${SITE.tagline}. Quality fashion for men, women and children.`,
-  icons: { icon: "/brand/waslah-logo.png" },
+  icons: { icon: BRAND.logo.icon },
   openGraph: {
     title: `${SITE.name} — ${SITE.tagline}`,
     description: `${SITE.name} — ${SITE.tagline}.`,
@@ -42,7 +30,11 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${playfair.variable} h-full`}
+      // Active brand profile injected inline (colours + font pointers) so it
+      // wins over the stylesheet in both themes — the whole palette and the
+      // typefaces derive from these. See src/lib/brand.ts.
+      style={brandCssVars()}
+      className={`${FONT_CLASS} h-full`}
     >
       {/*
         suppressHydrationWarning on <body> as well: browser extensions

@@ -106,16 +106,22 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               >
                 {slide.subtitle && (
                   <p
-                    className={cn("kicker opacity-0", active && "animate-rise")}
+                    className={cn(
+                      "flex items-center gap-3 opacity-0",
+                      slide.textPosition === "CENTER" && "justify-center",
+                      slide.textPosition === "RIGHT" && "justify-end",
+                      active && "animate-rise",
+                    )}
                     style={{ animationDelay: "120ms" }}
                   >
-                    {slide.subtitle}
+                    <span className="h-px w-8 bg-[var(--accent)]" />
+                    <span className="kicker">{slide.subtitle}</span>
                   </p>
                 )}
 
                 <h1
                   className={cn(
-                    "mt-4 font-display text-[clamp(2.4rem,6vw,4.5rem)] font-semibold leading-[1.02] opacity-0",
+                    "display-title mt-5 text-[clamp(2.9rem,8.5vw,6.25rem)] opacity-0",
                     active && "animate-rise",
                   )}
                   style={{ animationDelay: "220ms" }}
@@ -126,7 +132,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                 {slide.description && (
                   <p
                     className={cn(
-                      "mt-5 max-w-md text-base leading-relaxed opacity-0",
+                      "mt-6 max-w-md text-[0.975rem] leading-relaxed opacity-0",
                       slide.textPosition === "CENTER" && "mx-auto",
                       slide.textPosition === "RIGHT" && "ml-auto",
                       active && "animate-rise",
@@ -139,7 +145,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
 
                 <div
                   className={cn(
-                    "mt-8 flex flex-wrap gap-3 opacity-0",
+                    "mt-9 flex flex-wrap gap-3 opacity-0",
                     slide.textPosition === "CENTER" && "justify-center",
                     slide.textPosition === "RIGHT" && "justify-end",
                     active && "animate-rise",
@@ -147,18 +153,12 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                   style={{ animationDelay: "420ms" }}
                 >
                   {slide.buttonText && slide.buttonLink && (
-                    <Link
-                      href={slide.buttonLink}
-                      className="kicker bg-background px-7 py-3.5 text-foreground transition-transform duration-300 hover:-translate-y-0.5"
-                    >
+                    <Link href={slide.buttonLink} className="btn-accent">
                       {slide.buttonText}
                     </Link>
                   )}
                   {slide.button2Text && slide.button2Link && (
-                    <Link
-                      href={slide.button2Link}
-                      className="kicker border border-current px-7 py-3.5 transition-transform duration-300 hover:-translate-y-0.5"
-                    >
+                    <Link href={slide.button2Link} className="btn-outline">
                       {slide.button2Text}
                     </Link>
                   )}

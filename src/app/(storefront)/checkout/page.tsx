@@ -50,7 +50,8 @@ export default async function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-10 lg:py-16">
-      <h1 className="font-display text-[clamp(2rem,4vw,3rem)] leading-tight">Checkout</h1>
+      <h1 className="display-title text-[clamp(2.2rem,5vw,3.5rem)]">Checkout</h1>
+      <div className="rule-gold mt-4" />
 
       {!session && (
         <p className="mt-4 text-sm text-muted-foreground">
@@ -71,8 +72,8 @@ export default async function CheckoutPage() {
         />
 
         <aside className="lg:sticky lg:top-32 lg:self-start">
-          <div className="border border-border p-6">
-            <h2 className="kicker text-muted-foreground">Your order</h2>
+          <div className="border border-border bg-card p-6 shadow-sm">
+            <h2 className="kicker text-[color:var(--accent)]">Your order</h2>
 
             <ul className="mt-5 space-y-4">
               {lines.map((line) => (
@@ -121,9 +122,9 @@ export default async function CheckoutPage() {
                   <dd className="tabular-nums">{formatPrice(totals.tax)}</dd>
                 </div>
               )}
-              <div className="flex justify-between border-t border-border pt-3">
-                <dt className="font-display text-lg">Total</dt>
-                <dd className="font-display text-lg tabular-nums">
+              <div className="flex items-baseline justify-between border-t border-border pt-3">
+                <dt className="font-display text-lg font-bold">Total</dt>
+                <dd className="font-display text-xl font-bold tabular-nums">
                   {formatPrice(totals.total)}
                 </dd>
               </div>

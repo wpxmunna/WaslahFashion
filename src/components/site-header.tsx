@@ -5,6 +5,7 @@ import { Heart, Phone, Search, ShoppingBag, User2 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getCartCount } from "@/lib/cart";
 import { getCategoryTree } from "@/lib/queries/products";
+import { BRAND } from "@/lib/brand";
 import { DEFAULT_STORE_ID, SITE } from "@/lib/config";
 import { getShippingSettings } from "@/lib/settings";
 import { formatPrice } from "@/lib/money";
@@ -54,7 +55,7 @@ export async function SiteHeader() {
 
           <Link href="/" className="shrink-0" aria-label={`${SITE.name} — home`}>
             <Image
-              src="/brand/waslah-lockup.png"
+              src={BRAND.logo.lockup}
               alt={`${SITE.name} — ${SITE.tagline}`}
               width={1958}
               height={732}
@@ -69,7 +70,7 @@ export async function SiteHeader() {
                 <li key={category.id} className="group relative">
                   <Link
                     href={`/shop/category/${category.slug}`}
-                    className="link-wipe py-2 text-sm font-medium"
+                    className="link-wipe py-2 text-[0.8125rem] font-semibold uppercase tracking-[0.08em]"
                   >
                     {category.name}
                   </Link>
@@ -93,7 +94,10 @@ export async function SiteHeader() {
                 </li>
               ))}
               <li>
-                <Link href="/shop" className="link-wipe py-2 text-sm font-medium">
+                <Link
+                  href="/shop"
+                  className="link-wipe py-2 text-[0.8125rem] font-semibold uppercase tracking-[0.08em]"
+                >
                   All
                 </Link>
               </li>

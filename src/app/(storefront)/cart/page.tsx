@@ -3,8 +3,6 @@ import Link from "next/link";
 import { ArrowRight, ShoppingBag } from "lucide-react";
 
 import { CartLineItem } from "@/components/cart-line-item";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { getCartView } from "@/lib/cart";
 import { getShippingSettings } from "@/lib/settings";
 import { formatPrice } from "@/lib/money";
@@ -24,14 +22,13 @@ export default async function CartPage() {
           className="mx-auto size-10 text-muted-foreground"
           strokeWidth={1.2}
         />
-        <h1 className="mt-6 font-display text-3xl">Your bag is empty</h1>
-        <p className="mt-3 text-muted-foreground">
+        <h1 className="display-title mt-6 text-[clamp(1.9rem,4vw,2.75rem)]">
+          Your bag is empty
+        </h1>
+        <p className="mt-4 text-muted-foreground">
           Nothing in here yet — the collection is a good place to start.
         </p>
-        <Link
-          href="/shop"
-          className={cn(buttonVariants({ size: "lg" }), "mt-8 h-11 rounded-none px-8")}
-        >
+        <Link href="/shop" className="btn-solid mt-8">
           Browse the collection
         </Link>
       </div>
@@ -43,7 +40,8 @@ export default async function CartPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-10 lg:py-16">
-      <h1 className="font-display text-[clamp(2rem,4vw,3rem)] leading-tight">Your bag</h1>
+      <h1 className="display-title text-[clamp(2.2rem,5vw,3.5rem)]">Your bag</h1>
+      <div className="rule-gold mt-4" />
 
       <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-16">
         <section aria-label="Bag contents">
@@ -62,8 +60,8 @@ export default async function CartPage() {
         </section>
 
         <aside className="lg:sticky lg:top-32 lg:self-start">
-          <div className="border border-border p-6">
-            <h2 className="kicker text-muted-foreground">Summary</h2>
+          <div className="border border-border bg-card p-6 shadow-sm">
+            <h2 className="kicker text-[color:var(--accent)]">Summary</h2>
 
             <dl className="mt-5 space-y-3 text-sm">
               <div className="flex justify-between">
@@ -91,9 +89,9 @@ export default async function CartPage() {
                 </div>
               )}
 
-              <div className="flex justify-between border-t border-border pt-3">
-                <dt className="font-display text-lg">Total</dt>
-                <dd className="font-display text-lg tabular-nums">
+              <div className="flex items-baseline justify-between border-t border-border pt-3">
+                <dt className="font-display text-lg font-bold">Total</dt>
+                <dd className="font-display text-xl font-bold tabular-nums">
                   {formatPrice(totals.total)}
                 </dd>
               </div>
@@ -127,15 +125,9 @@ export default async function CartPage() {
                 Some items need attention before you can check out.
               </p>
             ) : (
-              <Link
-                href="/checkout"
-                className={cn(
-                  buttonVariants({ size: "lg" }),
-                  "mt-6 h-12 w-full rounded-none text-base",
-                )}
-              >
+              <Link href="/checkout" className="btn-accent mt-6 w-full">
                 Checkout
-                <ArrowRight className="size-4" strokeWidth={1.8} />
+                <ArrowRight className="size-4" strokeWidth={2} />
               </Link>
             )}
 

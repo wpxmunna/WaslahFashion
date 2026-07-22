@@ -24,11 +24,12 @@ export default async function ShopPage({
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-10 lg:py-16">
       <header className="mb-8 max-w-2xl">
-        <p className="kicker text-muted-foreground">The collection</p>
-        <h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,3.5rem)] leading-tight">
+        <p className="kicker text-[color:var(--accent)]">The collection</p>
+        <h1 className="display-title mt-3 text-[clamp(2.4rem,6vw,4.25rem)]">
           Everything we make
         </h1>
-        <p className="mt-4 text-muted-foreground">
+        <div className="rule-gold mt-5" />
+        <p className="mt-5 text-muted-foreground">
           Handloom, block print and everyday cotton — sourced directly from the people
           who make it.
         </p>

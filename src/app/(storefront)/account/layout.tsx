@@ -15,11 +15,12 @@ export default async function AccountLayout({
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-10 lg:py-16">
       <header>
-        <p className="kicker text-muted-foreground">Your account</p>
-        <h1 className="mt-2 font-display text-[clamp(2rem,4vw,3rem)] leading-tight">
+        <p className="kicker text-[color:var(--accent)]">Your account</p>
+        <h1 className="mt-2 font-display text-[clamp(2rem,4vw,3rem)] font-bold leading-tight tracking-tight">
           {user.name}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
+        <div className="rule-gold mt-5" />
       </header>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-16">
