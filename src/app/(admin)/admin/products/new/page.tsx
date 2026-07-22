@@ -7,11 +7,18 @@ import { prisma } from "@/lib/prisma";
 export const metadata = { title: "New product" };
 
 export default async function NewProductPage() {
-  const categories = await prisma.category.findMany({
-    where: { storeId: DEFAULT_STORE_ID, isActive: true },
-    orderBy: [{ parentId: "asc" }, { sortOrder: "asc" }],
-    select: { id: true, name: true, parent: { select: { name: true } } },
-  });
+  const [categories, sizeCharts] = await Promise.all([
+    prisma.category.findMany({
+      where: { storeId: DEFAULT_STORE_ID, isActive: true },
+      orderBy: [{ parentId: "asc" }, { sortOrder: "asc" }],
+      select: { id: true, name: true, parent: { select: { name: true } } },
+    }),
+    prisma.sizeChart.findMany({
+      where: { storeId: DEFAULT_STORE_ID },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+  ]);
 
   return (
     <>
@@ -28,6 +35,7 @@ export default async function NewProductPage() {
           id: c.id,
           name: c.parent ? `${c.parent.name} → ${c.name}` : c.name,
         }))}
+        sizeCharts={sizeCharts}
       />
     </>
   );

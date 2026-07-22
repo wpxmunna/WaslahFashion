@@ -38,15 +38,17 @@ export type ProductFormValues = {
   isNew: boolean;
   metaTitle: string;
   metaDescription: string;
-  sizeChart: string;
+  sizeChartId: number | null;
 };
 
 export function ProductForm({
   values,
   categories,
+  sizeCharts,
 }: {
   values: ProductFormValues;
   categories: { id: number; name: string }[];
+  sizeCharts: { id: number; name: string }[];
 }) {
   const isEdit = typeof values.id === "number";
 
@@ -184,23 +186,6 @@ export function ProductForm({
             </div>
           </Panel>
 
-          <Panel
-            title="Size guide"
-            description="Optional. First line is the column headings, then one line per size."
-          >
-            <div className="p-5">
-              <TextareaField
-                name="sizeChart"
-                label="Size chart"
-                rows={6}
-                defaultValue={values.sizeChart}
-                errors={e.sizeChart}
-                hint="One row per line; separate cells with commas (or paste from a spreadsheet). Leave blank for no size guide."
-                placeholder={"Size, Chest, Length, Sleeve\nS, 38, 27, 24\nM, 40, 28, 24.5\nL, 42, 29, 25"}
-              />
-            </div>
-          </Panel>
-
           <Panel title="Search engine listing">
             <div className="grid gap-4 p-5">
               <TextField
@@ -243,6 +228,15 @@ export function ProductForm({
                 defaultValue={values.categoryId ?? ""}
                 errors={e.categoryId}
                 options={categories.map((c) => ({ value: c.id, label: c.name }))}
+              />
+              <SelectField
+                name="sizeChartId"
+                label="Size guide"
+                placeholder="No size guide"
+                defaultValue={values.sizeChartId ?? ""}
+                errors={e.sizeChartId}
+                options={sizeCharts.map((s) => ({ value: s.id, label: s.name }))}
+                hint="Create and edit charts under Size charts."
               />
               <div className="space-y-3 border-t border-border pt-4">
                 <CheckboxField

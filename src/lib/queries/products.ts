@@ -180,6 +180,7 @@ export async function getProductBySlug(slug: string, storeId = DEFAULT_STORE_ID)
     where: { slug, storeId, status: "ACTIVE" },
     include: {
       category: { select: { id: true, name: true, slug: true, parentId: true } },
+      sizeChart: { select: { data: true } },
       images: { orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }] },
       variants: {
         where: { isActive: true },

@@ -30,6 +30,7 @@ export const NAV: NavSection[] = [
       { href: "/admin/products", label: "Products" },
       { href: "/admin/categories", label: "Categories" },
       { href: "/admin/colors", label: "Colours" },
+      { href: "/admin/size-charts", label: "Size charts" },
     ],
   },
   {

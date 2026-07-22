@@ -11,7 +11,6 @@ import { DEFAULT_STORE_ID } from "@/lib/config";
 import { imageUrl } from "@/lib/images";
 import { toNumber } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
-import { coerceSizeChart, sizeChartToText } from "@/lib/size-chart";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -43,6 +42,12 @@ export default async function EditProductPage({ params }: Props) {
       select: { id: true, name: true, parent: { select: { name: true } } },
     }),
   ]);
+
+  const sizeCharts = await prisma.sizeChart.findMany({
+    where: { storeId: DEFAULT_STORE_ID },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
 
   if (!product) notFound();
 
@@ -100,12 +105,13 @@ export default async function EditProductPage({ params }: Props) {
           isNew: product.isNew,
           metaTitle: product.metaTitle ?? "",
           metaDescription: product.metaDescription ?? "",
-          sizeChart: sizeChartToText(coerceSizeChart(product.sizeChart)),
+          sizeChartId: product.sizeChartId,
         }}
         categories={categories.map((c) => ({
           id: c.id,
           name: c.parent ? `${c.parent.name} → ${c.name}` : c.name,
         }))}
+        sizeCharts={sizeCharts}
       />
 
       <div className="mt-6 space-y-6">

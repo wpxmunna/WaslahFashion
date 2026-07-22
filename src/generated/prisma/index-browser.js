@@ -217,8 +217,17 @@ exports.Prisma.ProductScalarFieldEnum = {
   status: 'status',
   metaTitle: 'metaTitle',
   metaDescription: 'metaDescription',
-  sizeChart: 'sizeChart',
+  sizeChartId: 'sizeChartId',
   views: 'views',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SizeChartScalarFieldEnum = {
+  id: 'id',
+  storeId: 'storeId',
+  name: 'name',
+  data: 'data',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1098,12 +1107,12 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
-exports.Prisma.NullableJsonNullValueInput = {
-  DbNull: Prisma.DbNull,
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
-exports.Prisma.JsonNullValueInput = {
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull
 };
 
@@ -1157,6 +1166,17 @@ exports.Prisma.CategoryOrderByRelevanceFieldEnum = {
   icon: 'icon'
 };
 
+exports.Prisma.ProductOrderByRelevanceFieldEnum = {
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  shortDescription: 'shortDescription',
+  sku: 'sku',
+  barcode: 'barcode',
+  metaTitle: 'metaTitle',
+  metaDescription: 'metaDescription'
+};
+
 exports.Prisma.JsonNullValueFilter = {
   DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull,
@@ -1168,15 +1188,8 @@ exports.Prisma.QueryMode = {
   insensitive: 'insensitive'
 };
 
-exports.Prisma.ProductOrderByRelevanceFieldEnum = {
-  name: 'name',
-  slug: 'slug',
-  description: 'description',
-  shortDescription: 'shortDescription',
-  sku: 'sku',
-  barcode: 'barcode',
-  metaTitle: 'metaTitle',
-  metaDescription: 'metaDescription'
+exports.Prisma.SizeChartOrderByRelevanceFieldEnum = {
+  name: 'name'
 };
 
 exports.Prisma.ProductImageOrderByRelevanceFieldEnum = {
@@ -1879,6 +1892,7 @@ exports.Prisma.ModelName = {
   Address: 'Address',
   Category: 'Category',
   Product: 'Product',
+  SizeChart: 'SizeChart',
   ProductImage: 'ProductImage',
   Color: 'Color',
   Size: 'Size',

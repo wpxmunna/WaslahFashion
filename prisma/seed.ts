@@ -371,6 +371,83 @@ async function main() {
     },
   ];
 
+  // Reusable size charts, assigned to products below by garment type.
+  const sizeChartTemplates: Record<string, { columns: string[]; rows: string[][] }> = {
+    "Adult Top (S–XXL)": {
+      columns: ["Size", "Chest (in)", "Length (in)", "Shoulder (in)", "Sleeve (in)"],
+      rows: [
+        ["S", "38", "28", "17", "24"],
+        ["M", "40", "29", "17.5", "24.5"],
+        ["L", "42", "30", "18", "25"],
+        ["XL", "44", "31", "18.5", "25.5"],
+        ["XXL", "46", "32", "19", "26"],
+      ],
+    },
+    "T-Shirt (S–XXL)": {
+      columns: ["Size", "Chest (in)", "Length (in)", "Sleeve (in)"],
+      rows: [
+        ["S", "38", "27", "8"],
+        ["M", "40", "28", "8.5"],
+        ["L", "42", "29", "9"],
+        ["XL", "44", "30", "9.5"],
+        ["XXL", "46", "31", "10"],
+      ],
+    },
+    "Women's Suit": {
+      columns: ["Size", "Bust (in)", "Waist (in)", "Hip (in)", "Kameez Length (in)"],
+      rows: [
+        ["S", "36", "30", "38", "42"],
+        ["M", "38", "32", "40", "42"],
+        ["L", "40", "34", "42", "43"],
+        ["XL", "42", "36", "44", "43"],
+      ],
+    },
+    "Kids (by Age)": {
+      columns: ["Age", "Height (in)", "Chest (in)", "Length (in)"],
+      rows: [
+        ["2–3Y", "36", "22", "16"],
+        ["4–5Y", "42", "24", "18"],
+        ["6–7Y", "48", "26", "20"],
+        ["8–9Y", "52", "28", "22"],
+        ["10–11Y", "56", "30", "24"],
+      ],
+    },
+    Saree: {
+      columns: ["Detail", "Measurement"],
+      rows: [
+        ["Saree length", "5.5 m"],
+        ["Blouse piece", "0.9 m"],
+        ["Width", "1.15 m"],
+      ],
+    },
+    Dupatta: {
+      columns: ["Detail", "Measurement"],
+      rows: [
+        ["Length", "2.4 m"],
+        ["Width", "0.9 m"],
+      ],
+    },
+  };
+
+  const sizeChartIds = new Map<string, number>();
+  for (const [name, data] of Object.entries(sizeChartTemplates)) {
+    const existing = await prisma.sizeChart.findFirst({ where: { storeId: store.id, name } });
+    const rec =
+      existing ?? (await prisma.sizeChart.create({ data: { storeId: store.id, name, data } }));
+    sizeChartIds.set(name, rec.id);
+  }
+
+  const chartFor = (name: string, category: string): string => {
+    const n = name.toLowerCase();
+    const c = category.toLowerCase();
+    if (n.includes("dupatta")) return "Dupatta";
+    if (n.includes("saree") || c.includes("saree")) return "Saree";
+    if (c.includes("t-shirt") || n.includes("tee")) return "T-Shirt (S–XXL)";
+    if (n.includes("frock") || c.includes("boy") || c.includes("girl")) return "Kids (by Age)";
+    if (c.includes("salwar") || c.includes("kameez") || c.includes("kurti")) return "Women's Suit";
+    return "Adult Top (S–XXL)";
+  };
+
   for (const spec of products) {
     const categoryId = categoryIds.get(spec.category);
     if (!categoryId) throw new Error(`Unknown category ${spec.category}`);
@@ -397,6 +474,7 @@ async function main() {
         isFeatured: spec.featured ?? false,
         isNew: spec.isNew ?? false,
         status: "ACTIVE",
+        sizeChartId: sizeChartIds.get(chartFor(spec.name, spec.category)) ?? null,
         images: {
           create: spec.photos.map((id, i) => ({
             path: PHOTO(id),

@@ -43,6 +43,7 @@ model Store {
   users            User[]
   categories       Category[]
   products         Product[]
+  sizeCharts       SizeChart[]
   colors           Color[]
   sizes            Size[]
   carts            Cart[]
@@ -235,14 +236,15 @@ model Product {
   status            ProductStatus @default(ACTIVE)
   metaTitle         String?       @map("meta_title") @db.VarChar(255)
   metaDescription   String?       @map("meta_description") @db.VarChar(500)
-  // Optional size guide: { columns: string[], rows: string[][] }. Admin-edited.
-  sizeChart         Json?         @map("size_chart")
+  // Optional reusable size guide, assigned from a shared SizeChart template.
+  sizeChartId       Int?          @map("size_chart_id")
   views             Int           @default(0)
   createdAt         DateTime      @default(now()) @map("created_at")
   updatedAt         DateTime      @updatedAt @map("updated_at")
 
   store        Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   category     Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  sizeChart    SizeChart?          @relation(fields: [sizeChartId], references: [id], onDelete: SetNull)
   images       ProductImage[]
   variants     ProductVariant[]
   cartItems    CartItem[]
@@ -258,7 +260,25 @@ model Product {
   @@index([status])
   @@index([isFeatured])
   @@index([barcode])
+  @@index([sizeChartId])
   @@map("products")
+}
+
+/// Reusable size guide template: a small table shared across products.
+model SizeChart {
+  id        Int      @id @default(autoincrement())
+  storeId   Int      @map("store_id")
+  name      String   @db.VarChar(120)
+  /// { columns: string[], rows: string[][] }
+  data      Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  store    Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  products Product[]
+
+  @@index([storeId])
+  @@map("size_charts")
 }
 
 model ProductImage {

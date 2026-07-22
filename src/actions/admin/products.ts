@@ -8,9 +8,7 @@ import { requireStaff } from "@/lib/admin/guard";
 import { resolveImageInput } from "@/lib/admin/upload";
 import { DEFAULT_STORE_ID } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/generated/prisma";
 import { slugify } from "@/lib/slug";
-import { parseSizeChartText } from "@/lib/size-chart";
 import { fieldErrors, type FormState } from "@/actions/types";
 
 const optionalNumber = z
@@ -41,7 +39,18 @@ const productSchema = z.object({
   isNew: z.coerce.boolean().default(false),
   metaTitle: z.string().trim().max(255).optional(),
   metaDescription: z.string().trim().max(500).optional(),
+  sizeChartId: optionalNumber,
 });
+
+/** Only accept a size chart that belongs to this store; otherwise unassign. */
+async function resolveSizeChartId(id: number | null): Promise<number | null> {
+  if (!id) return null;
+  const chart = await prisma.sizeChart.findFirst({
+    where: { id, storeId: DEFAULT_STORE_ID },
+    select: { id: true },
+  });
+  return chart ? id : null;
+}
 
 function parseCheckbox(formData: FormData, name: string): boolean {
   const v = formData.get(name);
@@ -95,7 +104,7 @@ export async function createProduct(
   }
 
   const slug = await uniqueSlug(slugify(d.slug || d.name), DEFAULT_STORE_ID);
-  const sizeChart = parseSizeChartText(formData.get("sizeChart") as string | null);
+  const sizeChartId = await resolveSizeChartId(d.sizeChartId);
 
   // A first image can be supplied inline on the create form.
   const image = await resolveImageInput(
@@ -125,7 +134,7 @@ export async function createProduct(
       isNew: d.isNew,
       metaTitle: d.metaTitle || null,
       metaDescription: d.metaDescription || null,
-      sizeChart: sizeChart ?? Prisma.DbNull,
+      sizeChartId,
       ...(image?.ok
         ? { images: { create: { path: image.path, isPrimary: true, sortOrder: 0 } } }
         : {}),
@@ -191,7 +200,7 @@ export async function updateProduct(
       isNew: d.isNew,
       metaTitle: d.metaTitle || null,
       metaDescription: d.metaDescription || null,
-      sizeChart: parseSizeChartText(formData.get("sizeChart") as string | null) ?? Prisma.DbNull,
+      sizeChartId: await resolveSizeChartId(d.sizeChartId),
     },
   });
 

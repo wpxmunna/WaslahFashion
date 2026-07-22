@@ -72,7 +72,7 @@ export default async function ProductPage({ params }: Props) {
 
   const price = effectivePrice(product.price, product.salePrice);
   const onSale = isOnSale(product.price, product.salePrice);
-  const sizeChart = coerceSizeChart(product.sizeChart);
+  const sizeChart = coerceSizeChart(product.sizeChart?.data ?? null);
 
   const images: GalleryImage[] = product.images
     .map((img) => ({ id: img.id, src: imageUrl(img.path)!, alt: img.altText ?? product.name }))
