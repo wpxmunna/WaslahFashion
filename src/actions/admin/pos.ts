@@ -7,6 +7,7 @@ import { fieldErrors, type FormState } from "@/actions/types";
 import type { Prisma } from "@/generated/prisma";
 import { requireStaff } from "@/lib/admin/guard";
 import { DEFAULT_STORE_ID } from "@/lib/config";
+import { imageUrl } from "@/lib/images";
 import { effectivePrice, toNumber, type Money } from "@/lib/money";
 import {
   computeTotals,
@@ -390,7 +391,7 @@ function toProductRow(p: RawProduct): PosProductRow {
     barcode: p.barcode,
     price: effectivePrice(p.price, p.salePrice),
     stock: p.stockQuantity,
-    image: p.images[0]?.path ?? null,
+    image: imageUrl(p.images[0]?.path),
   };
 }
 

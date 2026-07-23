@@ -3,6 +3,7 @@ import "server-only";
 import type { Coupon } from "@/generated/prisma";
 import type { CartLine } from "./cart";
 import { DEFAULT_STORE_ID } from "./config";
+import { imageUrl } from "./images";
 import { formatPrice, toNumber } from "./money";
 import { prisma } from "./prisma";
 
@@ -140,7 +141,7 @@ export async function evaluateCoupon(
         id: product.id,
         name: product.name,
         price: toNumber(product.salePrice ?? product.price),
-        image: product.images[0]?.path ?? null,
+        image: imageUrl(product.images[0]?.path),
       };
     }
   }

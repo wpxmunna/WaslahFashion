@@ -7,6 +7,7 @@ import { cache } from "react";
 import { Prisma } from "@/generated/prisma";
 import { DEFAULT_SHIPPING_COST, DEFAULT_STORE_ID, FREE_SHIPPING_THRESHOLD, TAX_RATE } from "./config";
 import { effectivePrice, toNumber } from "./money";
+import { imageUrl } from "./images";
 import { getSession } from "./auth";
 import { getShippingSettings } from "./settings";
 import { prisma } from "./prisma";
@@ -228,7 +229,7 @@ export async function getCartView(): Promise<CartView> {
       name: item.product.name,
       slug: item.product.slug,
       sku: item.product.sku,
-      image: item.product.images[0]?.path ?? null,
+      image: imageUrl(item.product.images[0]?.path),
       variantLabel: variantLabel(item.variant?.size, item.variant?.colorName),
       quantity: item.quantity,
       unitPrice,
