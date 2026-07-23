@@ -238,6 +238,65 @@ export async function deleteProduct(id: number): Promise<FormState> {
   return { ok: true, message: "Product deleted." };
 }
 
+/**
+ * Bulk status change or delete from the products list. Delete keeps history
+ * intact: products referenced by orders are archived (INACTIVE) rather than
+ * removed, and the message says how many of each.
+ */
+export async function bulkUpdateProducts(
+  ids: number[],
+  action: "activate" | "deactivate" | "draft" | "delete",
+): Promise<FormState> {
+  await requireStaff();
+
+  const clean = [...new Set(ids)].filter((n) => Number.isInteger(n) && n > 0).slice(0, 500);
+  if (clean.length === 0) return { ok: false, message: "Nothing selected." };
+
+  if (action === "delete") {
+    const onOrders = await prisma.orderItem.findMany({
+      where: { productId: { in: clean } },
+      select: { productId: true },
+      distinct: ["productId"],
+    });
+    const archived = new Set(
+      onOrders.map((o) => o.productId).filter((x): x is number => x !== null),
+    );
+    const deletable = clean.filter((id) => !archived.has(id));
+
+    if (archived.size > 0) {
+      await prisma.product.updateMany({
+        where: { id: { in: [...archived] }, storeId: DEFAULT_STORE_ID },
+        data: { status: "INACTIVE" },
+      });
+    }
+    if (deletable.length > 0) {
+      await prisma.product.deleteMany({
+        where: { id: { in: deletable }, storeId: DEFAULT_STORE_ID },
+      });
+    }
+
+    revalidatePath("/admin/products");
+    revalidatePath("/shop");
+    return {
+      ok: true,
+      message:
+        `${deletable.length} deleted` +
+        (archived.size ? `, ${archived.size} archived (on past orders)` : "") +
+        ".",
+    };
+  }
+
+  const status = action === "activate" ? "ACTIVE" : action === "deactivate" ? "INACTIVE" : "DRAFT";
+  const res = await prisma.product.updateMany({
+    where: { id: { in: clean }, storeId: DEFAULT_STORE_ID },
+    data: { status },
+  });
+
+  revalidatePath("/admin/products");
+  revalidatePath("/shop");
+  return { ok: true, message: `${res.count} product${res.count === 1 ? "" : "s"} updated.` };
+}
+
 export async function addProductImage(
   productId: number,
   _prev: FormState,
