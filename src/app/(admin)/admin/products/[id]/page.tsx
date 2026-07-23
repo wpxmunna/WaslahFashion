@@ -11,6 +11,7 @@ import { DEFAULT_STORE_ID } from "@/lib/config";
 import { imageUrl } from "@/lib/images";
 import { toNumber } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
+import { compareVariants } from "@/lib/variants";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -128,7 +129,7 @@ export default async function EditProductPage({ params }: Props) {
 
         <ProductVariants
           productId={product.id}
-          variants={product.variants.map((v) => ({
+          variants={[...product.variants].sort(compareVariants).map((v) => ({
             id: v.id,
             size: v.size,
             colorName: v.colorName,

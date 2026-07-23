@@ -15,6 +15,7 @@ import {
 import { WishlistButton } from "@/components/wishlist-button";
 import { SizeGuide } from "@/components/size-guide";
 import { coerceSizeChart } from "@/lib/size-chart";
+import { compareVariants } from "@/lib/variants";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getShippingSettings } from "@/lib/settings";
@@ -78,7 +79,7 @@ export default async function ProductPage({ params }: Props) {
     .map((img) => ({ id: img.id, src: imageUrl(img.path)!, alt: img.altText ?? product.name }))
     .filter((i) => !!i.src);
 
-  const variants: PurchaseVariant[] = product.variants.map((v) => ({
+  const variants: PurchaseVariant[] = [...product.variants].sort(compareVariants).map((v) => ({
     id: v.id,
     size: v.size,
     colorName: v.colorName ?? v.color?.name ?? null,
