@@ -1,11 +1,19 @@
 import { PageHeader } from "@/components/admin/ui";
 import { OrderCreateForm } from "@/components/admin/order-create-form";
 import { requireStaff } from "@/lib/admin/guard";
+import { DEFAULT_STORE_ID } from "@/lib/config";
+import { prisma } from "@/lib/prisma";
 
 export const metadata = { title: "New order" };
 
 export default async function NewOrderPage() {
   await requireStaff();
+
+  const couriers = await prisma.courier.findMany({
+    where: { storeId: DEFAULT_STORE_ID, isActive: true },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
 
   return (
     <>
@@ -17,7 +25,7 @@ export default async function NewOrderPage() {
           { href: "/admin/orders", label: "Orders" },
         ]}
       />
-      <OrderCreateForm />
+      <OrderCreateForm couriers={couriers} />
     </>
   );
 }

@@ -34,7 +34,7 @@ const SOURCES = ["WhatsApp", "Facebook", "Instagram", "Phone", "In person", "Oth
 
 let keySeq = 1;
 
-export function OrderCreateForm() {
+export function OrderCreateForm({ couriers }: { couriers: { id: number; name: string }[] }) {
   const router = useRouter();
   const [lines, setLines] = useState<Line[]>([]);
 
@@ -61,6 +61,7 @@ export function OrderCreateForm() {
     paymentMethod: "cod",
     status: "PROCESSING" as ManualOrderInput["status"],
     paymentStatus: "PENDING" as ManualOrderInput["paymentStatus"],
+    courierId: "",
     shippingAmount: "0",
     discountAmount: "0",
     notes: "",
@@ -158,6 +159,7 @@ export function OrderCreateForm() {
       paymentMethod: form.paymentMethod,
       status: form.status,
       paymentStatus: form.paymentStatus,
+      courierId: form.courierId ? Number(form.courierId) : null,
       shippingAmount: shippingAmt,
       discountAmount: discountAmt,
       source: form.source,
@@ -355,6 +357,15 @@ export function OrderCreateForm() {
               { value: "PENDING", label: "Awaiting payment" },
               { value: "PAID", label: "Paid" },
             ]} />
+            <SelectField
+              name="courierId"
+              label="Delivery partner"
+              placeholder={couriers.length ? "Assign later" : "No couriers set up"}
+              value={form.courierId}
+              onChange={(e) => set("courierId", e.target.value)}
+              options={couriers.map((c) => ({ value: c.id, label: c.name }))}
+              hint="Manage couriers under Configuration → Couriers."
+            />
             <div className="grid grid-cols-2 gap-4">
               <TextField name="shippingAmount" label="Delivery charge" type="number" step="0.01" min="0" value={form.shippingAmount} onChange={(e) => set("shippingAmount", e.target.value)} />
               <TextField name="discountAmount" label="Discount" type="number" step="0.01" min="0" value={form.discountAmount} onChange={(e) => set("discountAmount", e.target.value)} />

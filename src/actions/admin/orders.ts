@@ -452,6 +452,7 @@ const manualOrderSchema = z.object({
   paymentStatus: z.enum(["PENDING", "PAID"]),
   shippingAmount: z.number().min(0).max(1_000_000),
   discountAmount: z.number().min(0).max(10_000_000),
+  courierId: z.number().int().positive().nullable(),
   source: z.string().trim().max(40).optional(),
   notes: z.string().trim().max(1000).optional(),
   lines: z.array(manualLineSchema).min(1, "Add at least one product"),
@@ -611,6 +612,25 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Create
           status: d.paymentStatus === "PAID" ? "PAID" : "PENDING",
         },
       });
+
+      // Assign the delivery partner, mirroring the customer checkout.
+      if (d.courierId) {
+        const courier = await tx.courier.findFirst({
+          where: { id: d.courierId, storeId: DEFAULT_STORE_ID, isActive: true },
+          select: { id: true, name: true },
+        });
+        if (courier) {
+          await tx.shipment.create({
+            data: {
+              orderId: created.id,
+              courierId: courier.id,
+              courierName: courier.name,
+              status: "PENDING",
+              deliveryFee: d.shippingAmount,
+            },
+          });
+        }
+      }
 
       return created;
     });
