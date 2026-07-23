@@ -8,6 +8,8 @@ import {
   OrderShipmentForm,
   OrderStatusForm,
 } from "@/components/admin/order-forms";
+import { OrderAddressForm } from "@/components/admin/order-address-form";
+import { OrderItemsEditor } from "@/components/admin/order-items-editor";
 import {
   DataTable,
   EmptyState,
@@ -148,6 +150,19 @@ export default async function AdminOrderDetailPage({ params }: Props) {
   const shipment = order.shipment;
   const events = shipment?.events ?? [];
 
+  // Orders can be edited before they leave the building.
+  const editable = order.status === "PENDING" || order.status === "PROCESSING";
+  const editableItems = order.items.map((i) => ({
+    id: i.id,
+    productName: i.productName,
+    variantInfo: i.variantInfo,
+    productSku: i.productSku,
+    quantity: i.quantity,
+    unitPrice: toNumber(i.unitPrice),
+    totalPrice: toNumber(i.totalPrice),
+    isGift: i.isGift,
+  }));
+
   return (
     <>
       <PageHeader
@@ -175,94 +190,122 @@ export default async function AdminOrderDetailPage({ params }: Props) {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-6">
-          <Panel title="Items">
-            <DataTable>
-              <THead>
-                <Th>Product</Th>
-                <Th align="right">Unit price</Th>
-                <Th align="right">Qty</Th>
-                <Th align="right">Total</Th>
-              </THead>
-              <TBody>
-                {order.items.map((item) => (
-                  <tr key={item.id}>
-                    <Td>
-                      <span className="block font-medium">
-                        {item.productName}
-                        {item.isGift && (
-                          <span className="ml-2 align-middle">
-                            <StatusBadge label="Gift" tone="accent" />
+          <Panel
+            title="Items"
+            description={editable ? "Add, remove or adjust quantities — stock and totals update automatically." : undefined}
+          >
+            {editable ? (
+              <OrderItemsEditor
+                orderId={order.id}
+                items={editableItems}
+                totals={{ subtotal, discount, shipping, tax, total, couponCode: order.couponCode }}
+              />
+            ) : (
+              <>
+                <DataTable>
+                  <THead>
+                    <Th>Product</Th>
+                    <Th align="right">Unit price</Th>
+                    <Th align="right">Qty</Th>
+                    <Th align="right">Total</Th>
+                  </THead>
+                  <TBody>
+                    {order.items.map((item) => (
+                      <tr key={item.id}>
+                        <Td>
+                          <span className="block font-medium">
+                            {item.productName}
+                            {item.isGift && (
+                              <span className="ml-2 align-middle">
+                                <StatusBadge label="Gift" tone="accent" />
+                              </span>
+                            )}
                           </span>
-                        )}
-                      </span>
-                      <span className="mt-0.5 block text-xs text-muted-foreground">
-                        {[item.variantInfo, item.productSku]
-                          .filter(Boolean)
-                          .join(" · ") || "No variant"}
-                      </span>
-                    </Td>
-                    <Td align="right" className="tabular-nums">
-                      {formatPrice(item.unitPrice)}
-                    </Td>
-                    <Td align="right" className="tabular-nums">
-                      {item.quantity}
-                    </Td>
-                    <Td align="right" className="tabular-nums">
-                      {formatPrice(item.totalPrice)}
-                    </Td>
-                  </tr>
-                ))}
-              </TBody>
-            </DataTable>
+                          <span className="mt-0.5 block text-xs text-muted-foreground">
+                            {[item.variantInfo, item.productSku]
+                              .filter(Boolean)
+                              .join(" · ") || "No variant"}
+                          </span>
+                        </Td>
+                        <Td align="right" className="tabular-nums">
+                          {formatPrice(item.unitPrice)}
+                        </Td>
+                        <Td align="right" className="tabular-nums">
+                          {item.quantity}
+                        </Td>
+                        <Td align="right" className="tabular-nums">
+                          {formatPrice(item.totalPrice)}
+                        </Td>
+                      </tr>
+                    ))}
+                  </TBody>
+                </DataTable>
 
-            <div className="border-t border-border p-5">
-              <div className="ml-auto max-w-sm">
-                <MoneyRow label="Subtotal" value={subtotal} />
-                {discount > 0 && (
-                  <MoneyRow
-                    label="Discount"
-                    hint={order.couponCode ? `(${order.couponCode})` : undefined}
-                    value={discount}
-                    negative
-                  />
-                )}
-                <MoneyRow label="Shipping" value={shipping} />
-                {tax > 0 && <MoneyRow label="Tax" value={tax} />}
-                <MoneyRow label="Total" value={total} strong />
+                <div className="border-t border-border p-5">
+                  <div className="ml-auto max-w-sm">
+                    <MoneyRow label="Subtotal" value={subtotal} />
+                    {discount > 0 && (
+                      <MoneyRow
+                        label="Discount"
+                        hint={order.couponCode ? `(${order.couponCode})` : undefined}
+                        value={discount}
+                        negative
+                      />
+                    )}
+                    <MoneyRow label="Shipping" value={shipping} />
+                    {tax > 0 && <MoneyRow label="Tax" value={tax} />}
+                    <MoneyRow label="Total" value={total} strong />
+                  </div>
+                </div>
+              </>
+            )}
+          </Panel>
+
+          {editable ? (
+            <OrderAddressForm
+              orderId={order.id}
+              values={{
+                shippingName: order.shippingName ?? "",
+                shippingPhone: order.shippingPhone ?? "",
+                shippingLine1: order.shippingLine1 ?? "",
+                shippingLine2: order.shippingLine2 ?? "",
+                shippingCity: order.shippingCity ?? "",
+                shippingState: order.shippingState ?? "",
+                shippingPostalCode: order.shippingPostalCode ?? "",
+              }}
+            />
+          ) : (
+            <Panel title="Addresses">
+              <div className="grid gap-8 p-5 sm:grid-cols-2">
+                <AddressBlock
+                  title="Shipping"
+                  address={{
+                    name: order.shippingName,
+                    phone: order.shippingPhone,
+                    line1: order.shippingLine1,
+                    line2: order.shippingLine2,
+                    city: order.shippingCity,
+                    state: order.shippingState,
+                    postalCode: order.shippingPostalCode,
+                    country: order.shippingCountry,
+                  }}
+                />
+                <AddressBlock
+                  title="Billing"
+                  address={{
+                    name: order.billingName,
+                    phone: order.billingPhone,
+                    line1: order.billingLine1,
+                    line2: order.billingLine2,
+                    city: order.billingCity,
+                    state: order.billingState,
+                    postalCode: order.billingPostalCode,
+                    country: order.billingCountry,
+                  }}
+                />
               </div>
-            </div>
-          </Panel>
-
-          <Panel title="Addresses">
-            <div className="grid gap-8 p-5 sm:grid-cols-2">
-              <AddressBlock
-                title="Shipping"
-                address={{
-                  name: order.shippingName,
-                  phone: order.shippingPhone,
-                  line1: order.shippingLine1,
-                  line2: order.shippingLine2,
-                  city: order.shippingCity,
-                  state: order.shippingState,
-                  postalCode: order.shippingPostalCode,
-                  country: order.shippingCountry,
-                }}
-              />
-              <AddressBlock
-                title="Billing"
-                address={{
-                  name: order.billingName,
-                  phone: order.billingPhone,
-                  line1: order.billingLine1,
-                  line2: order.billingLine2,
-                  city: order.billingCity,
-                  state: order.billingState,
-                  postalCode: order.billingPostalCode,
-                  country: order.billingCountry,
-                }}
-              />
-            </div>
-          </Panel>
+            </Panel>
+          )}
 
           <Panel title="Payments" description={order.paymentMethod ?? undefined}>
             {order.payments.length === 0 ? (

@@ -626,3 +626,269 @@ export async function createManualOrder(input: ManualOrderInput): Promise<Create
     return { ok: false, message: "Could not create the order. Please try again." };
   }
 }
+
+/* --------------------------------------------------------- edit an order
+
+   Add/remove/adjust line items and the shipping address after an order exists.
+   Stock is kept in step (only while the order still holds its reservation —
+   i.e. not cancelled/refunded), and the order totals are recomputed from the
+   line items every time.
+   -------------------------------------------------------------------------- */
+
+type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+async function recomputeOrderTotals(tx: TxClient, orderId: number): Promise<void> {
+  const [items, order] = await Promise.all([
+    tx.orderItem.findMany({ where: { orderId }, select: { totalPrice: true } }),
+    tx.order.findUnique({
+      where: { id: orderId },
+      select: { shippingAmount: true, taxAmount: true, discountAmount: true },
+    }),
+  ]);
+  if (!order) return;
+  const subtotal = round2(items.reduce((s, i) => s + toNumber(i.totalPrice), 0));
+  const total = Math.max(
+    0,
+    round2(
+      subtotal + toNumber(order.shippingAmount) + toNumber(order.taxAmount) - toNumber(order.discountAmount),
+    ),
+  );
+  await tx.order.update({ where: { id: orderId }, data: { subtotal, totalAmount: total } });
+}
+
+export async function addOrderItem(
+  orderId: number,
+  input: { productId: number; variantId: number | null; quantity: number; unitPrice: number },
+): Promise<FormState> {
+  await requireStaff();
+
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, storeId: DEFAULT_STORE_ID },
+    select: { id: true, status: true },
+  });
+  if (!order) return { ok: false, message: "Order not found." };
+
+  const product = await prisma.product.findFirst({
+    where: { id: input.productId, storeId: DEFAULT_STORE_ID },
+    select: {
+      id: true,
+      name: true,
+      sku: true,
+      variants: { select: { id: true, size: true, colorName: true, color: { select: { name: true } } } },
+    },
+  });
+  if (!product) return { ok: false, message: "Product not found." };
+
+  let variantInfo: string | null = null;
+  if (input.variantId) {
+    const v = product.variants.find((x) => x.id === input.variantId);
+    if (!v) return { ok: false, message: "Invalid product option." };
+    variantInfo = [v.size, v.colorName ?? v.color?.name].filter(Boolean).join(" / ") || null;
+  }
+
+  const qty = Math.max(1, Math.trunc(input.quantity));
+  const unitPrice = Math.max(0, input.unitPrice);
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      if (holdsStock(order.status as OrderStatusValue)) {
+        const res = input.variantId
+          ? await tx.productVariant.updateMany({
+              where: { id: input.variantId, stockQuantity: { gte: qty } },
+              data: { stockQuantity: { decrement: qty } },
+            })
+          : await tx.product.updateMany({
+              where: { id: input.productId, stockQuantity: { gte: qty } },
+              data: { stockQuantity: { decrement: qty } },
+            });
+        if (res.count === 0) throw new ManualStockError(product.name);
+      }
+      await tx.orderItem.create({
+        data: {
+          orderId,
+          productId: product.id,
+          variantId: input.variantId,
+          productName: product.name,
+          productSku: product.sku,
+          variantInfo,
+          quantity: qty,
+          unitPrice,
+          totalPrice: round2(unitPrice * qty),
+        },
+      });
+      await recomputeOrderTotals(tx, orderId);
+    });
+  } catch (error) {
+    if (error instanceof ManualStockError) {
+      return { ok: false, message: `${error.itemName} doesn't have enough stock.` };
+    }
+    throw error;
+  }
+
+  revalidatePath(`/admin/orders/${orderId}`);
+  return { ok: true, message: "Item added." };
+}
+
+export async function updateOrderItemQuantity(
+  itemId: number,
+  quantity: number,
+): Promise<FormState> {
+  await requireStaff();
+
+  const item = await prisma.orderItem.findUnique({
+    where: { id: itemId },
+    select: {
+      id: true,
+      quantity: true,
+      unitPrice: true,
+      productId: true,
+      variantId: true,
+      productName: true,
+      isGift: true,
+      order: { select: { id: true, status: true, storeId: true } },
+    },
+  });
+  if (!item || item.order.storeId !== DEFAULT_STORE_ID) {
+    return { ok: false, message: "Line not found." };
+  }
+
+  const newQty = Math.max(1, Math.trunc(quantity));
+  const delta = newQty - item.quantity;
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      if (!item.isGift && holdsStock(item.order.status as OrderStatusValue) && delta !== 0) {
+        if (delta > 0) {
+          const res = item.variantId
+            ? await tx.productVariant.updateMany({
+                where: { id: item.variantId, stockQuantity: { gte: delta } },
+                data: { stockQuantity: { decrement: delta } },
+              })
+            : await tx.product.updateMany({
+                where: { id: item.productId!, stockQuantity: { gte: delta } },
+                data: { stockQuantity: { decrement: delta } },
+              });
+          if (res.count === 0) throw new ManualStockError(item.productName);
+        } else {
+          const inc = -delta;
+          if (item.variantId) {
+            await tx.productVariant.update({
+              where: { id: item.variantId },
+              data: { stockQuantity: { increment: inc } },
+            });
+          } else if (item.productId) {
+            await tx.product.update({
+              where: { id: item.productId },
+              data: { stockQuantity: { increment: inc } },
+            });
+          }
+        }
+      }
+      await tx.orderItem.update({
+        where: { id: itemId },
+        data: { quantity: newQty, totalPrice: round2(toNumber(item.unitPrice) * newQty) },
+      });
+      await recomputeOrderTotals(tx, item.order.id);
+    });
+  } catch (error) {
+    if (error instanceof ManualStockError) {
+      return { ok: false, message: `${error.itemName} doesn't have enough stock.` };
+    }
+    throw error;
+  }
+
+  revalidatePath(`/admin/orders/${item.order.id}`);
+  return { ok: true, message: "Quantity updated." };
+}
+
+export async function removeOrderItem(itemId: number): Promise<FormState> {
+  await requireStaff();
+
+  const item = await prisma.orderItem.findUnique({
+    where: { id: itemId },
+    select: {
+      id: true,
+      quantity: true,
+      productId: true,
+      variantId: true,
+      isGift: true,
+      order: { select: { id: true, status: true, storeId: true, _count: { select: { items: true } } } },
+    },
+  });
+  if (!item || item.order.storeId !== DEFAULT_STORE_ID) {
+    return { ok: false, message: "Line not found." };
+  }
+  if (item.order._count.items <= 1) {
+    return { ok: false, message: "An order must keep at least one item. Cancel the order instead." };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    if (!item.isGift && holdsStock(item.order.status as OrderStatusValue)) {
+      if (item.variantId) {
+        await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: { stockQuantity: { increment: item.quantity } },
+        });
+      } else if (item.productId) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stockQuantity: { increment: item.quantity } },
+        });
+      }
+    }
+    await tx.orderItem.delete({ where: { id: itemId } });
+    await recomputeOrderTotals(tx, item.order.id);
+  });
+
+  revalidatePath(`/admin/orders/${item.order.id}`);
+  return { ok: true, message: "Item removed." };
+}
+
+const orderAddressSchema = z.object({
+  shippingName: z.string().trim().min(2, "Enter a name"),
+  shippingPhone: z.string().trim().min(6, "Enter a phone").max(20),
+  shippingLine1: z.string().trim().min(3, "Enter an address"),
+  shippingLine2: z.string().trim().optional(),
+  shippingCity: z.string().trim().min(2, "Enter a city"),
+  shippingState: z.string().trim().optional(),
+  shippingPostalCode: z.string().trim().optional(),
+});
+
+export async function updateOrderAddress(
+  orderId: number,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requireStaff();
+
+  const parsed = orderAddressSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return {
+      ...fieldErrors(z.flattenError(parsed.error).fieldErrors),
+      message: "Please check the highlighted fields.",
+    };
+  }
+  const d = parsed.data;
+
+  const exists = await prisma.order.findFirst({
+    where: { id: orderId, storeId: DEFAULT_STORE_ID },
+    select: { id: true },
+  });
+  if (!exists) return { ok: false, message: "Order not found." };
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      shippingName: d.shippingName,
+      shippingPhone: d.shippingPhone,
+      shippingLine1: d.shippingLine1,
+      shippingLine2: d.shippingLine2 || null,
+      shippingCity: d.shippingCity,
+      shippingState: d.shippingState || null,
+      shippingPostalCode: d.shippingPostalCode || null,
+    },
+  });
+
+  revalidatePath(`/admin/orders/${orderId}`);
+  return { ok: true, message: "Delivery details updated." };
+}
