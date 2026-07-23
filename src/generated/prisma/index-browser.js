@@ -1103,6 +1103,21 @@ exports.Prisma.MetaMessageTemplateScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.StockAdjustmentScalarFieldEnum = {
+  id: 'id',
+  storeId: 'storeId',
+  productId: 'productId',
+  variantId: 'variantId',
+  productName: 'productName',
+  variantInfo: 'variantInfo',
+  delta: 'delta',
+  newQuantity: 'newQuantity',
+  reason: 'reason',
+  note: 'note',
+  staffName: 'staffName',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1542,6 +1557,14 @@ exports.Prisma.MetaMessageTemplateOrderByRelevanceFieldEnum = {
   name: 'name',
   language: 'language'
 };
+
+exports.Prisma.StockAdjustmentOrderByRelevanceFieldEnum = {
+  productName: 'productName',
+  variantInfo: 'variantInfo',
+  reason: 'reason',
+  note: 'note',
+  staffName: 'staffName'
+};
 exports.UserRole = exports.$Enums.UserRole = {
   CUSTOMER: 'CUSTOMER',
   MANAGER: 'MANAGER',
@@ -1950,7 +1973,8 @@ exports.Prisma.ModelName = {
   MetaIntegration: 'MetaIntegration',
   MetaMessage: 'MetaMessage',
   MetaPageInsight: 'MetaPageInsight',
-  MetaMessageTemplate: 'MetaMessageTemplate'
+  MetaMessageTemplate: 'MetaMessageTemplate',
+  StockAdjustment: 'StockAdjustment'
 };
 
 /**

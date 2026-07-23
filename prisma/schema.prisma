@@ -1936,3 +1936,24 @@ model MetaMessageTemplate {
   @@index([storeId])
   @@map("meta_message_templates")
 }
+
+/// Manual stock correction with an audit trail (stock-take, damage, etc.).
+/// Standalone log: product/variant/staff are stored as scalars + snapshots, so
+/// it does not require back-relations on the catalogue models.
+model StockAdjustment {
+  id          Int      @id @default(autoincrement())
+  storeId     Int      @map("store_id")
+  productId   Int?     @map("product_id")
+  variantId   Int?     @map("variant_id")
+  productName String   @map("product_name") @db.VarChar(255)
+  variantInfo String?  @map("variant_info") @db.VarChar(120)
+  delta       Int
+  newQuantity Int      @map("new_quantity")
+  reason      String   @db.VarChar(50)
+  note        String?  @db.Text
+  staffName   String?  @map("staff_name") @db.VarChar(100)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([storeId, createdAt])
+  @@map("stock_adjustments")
+}
