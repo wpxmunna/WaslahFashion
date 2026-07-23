@@ -5,8 +5,11 @@ import { z } from "zod";
 
 import { fieldErrors, type FormState } from "@/actions/types";
 import { requireStaff } from "@/lib/admin/guard";
-import { DEFAULT_STORE_ID } from "@/lib/config";
+import { DEFAULT_COUNTRY, DEFAULT_STORE_ID } from "@/lib/config";
+import { toNumber } from "@/lib/money";
+import { generateOrderNumber } from "@/lib/order-number";
 import { prisma } from "@/lib/prisma";
+import { compareVariants } from "@/lib/variants";
 
 const ORDER_STATUSES = [
   "PENDING",
@@ -362,4 +365,264 @@ export async function appendOrderNote(
 
   revalidatePath(`/admin/orders/${orderId}`);
   return { ok: true, message: "Note added." };
+}
+
+/* ------------------------------------------------------- manual order create
+
+   Staff create orders that arrived off-site (Facebook, WhatsApp, phone). Prices
+   are entered by staff (they often negotiate), but product/variant names are
+   snapshotted server-side and stock is decremented with the same guarded
+   updateMany the customer checkout uses, so a manual order can never oversell.
+   -------------------------------------------------------------------------- */
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
+  );
+}
+
+class ManualStockError extends Error {
+  constructor(public itemName: string) {
+    super(itemName);
+    this.name = "ManualStockError";
+  }
+}
+
+export type OrderableVariant = {
+  id: number;
+  label: string;
+  priceModifier: number;
+  stock: number;
+};
+
+/** Active variants for a product, for the manual-order line picker. */
+export async function getOrderableVariants(productId: number): Promise<OrderableVariant[]> {
+  await requireStaff();
+  const rows = await prisma.productVariant.findMany({
+    where: { productId, isActive: true },
+    select: {
+      id: true,
+      size: true,
+      colorName: true,
+      color: { select: { name: true } },
+      priceModifier: true,
+      stockQuantity: true,
+    },
+  });
+  return rows
+    .map((v) => ({
+      id: v.id,
+      size: v.size,
+      colorName: v.colorName ?? v.color?.name ?? null,
+      priceModifier: toNumber(v.priceModifier),
+      stock: v.stockQuantity,
+    }))
+    .sort(compareVariants)
+    .map((v) => ({
+      id: v.id,
+      label: [v.size, v.colorName].filter(Boolean).join(" / ") || "Variant",
+      priceModifier: v.priceModifier,
+      stock: v.stock,
+    }));
+}
+
+const manualLineSchema = z.object({
+  productId: z.number().int().positive(),
+  variantId: z.number().int().positive().nullable(),
+  quantity: z.number().int().min(1).max(9999),
+  unitPrice: z.number().min(0).max(10_000_000),
+});
+
+const manualOrderSchema = z.object({
+  customerId: z.number().int().positive().nullable(),
+  shippingName: z.string().trim().min(2, "Enter the customer name"),
+  shippingPhone: z.string().trim().min(6, "Enter a contact phone").max(20),
+  shippingLine1: z.string().trim().min(3, "Enter an address"),
+  shippingLine2: z.string().trim().optional(),
+  shippingCity: z.string().trim().min(2, "Enter a city"),
+  shippingState: z.string().trim().optional(),
+  shippingPostalCode: z.string().trim().optional(),
+  paymentMethod: z.string().trim().min(1),
+  status: z.enum(["PENDING", "PROCESSING", "SHIPPED", "DELIVERED"]),
+  paymentStatus: z.enum(["PENDING", "PAID"]),
+  shippingAmount: z.number().min(0).max(1_000_000),
+  discountAmount: z.number().min(0).max(10_000_000),
+  source: z.string().trim().max(40).optional(),
+  notes: z.string().trim().max(1000).optional(),
+  lines: z.array(manualLineSchema).min(1, "Add at least one product"),
+});
+
+export type ManualOrderInput = z.infer<typeof manualOrderSchema>;
+export type CreateOrderResult =
+  | { ok: true; orderId: number; orderNumber: string }
+  | { ok: false; message: string };
+
+export async function createManualOrder(input: ManualOrderInput): Promise<CreateOrderResult> {
+  const staff = await requireStaff();
+
+  const parsed = manualOrderSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check the order." };
+  }
+  const d = parsed.data;
+
+  const productIds = [...new Set(d.lines.map((l) => l.productId))];
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds }, storeId: DEFAULT_STORE_ID },
+    select: {
+      id: true,
+      name: true,
+      sku: true,
+      variants: {
+        select: { id: true, size: true, colorName: true, color: { select: { name: true } } },
+      },
+    },
+  });
+  const productMap = new Map(products.map((p) => [p.id, p]));
+
+  const resolved: {
+    productId: number;
+    variantId: number | null;
+    productName: string;
+    productSku: string | null;
+    variantInfo: string | null;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+  }[] = [];
+
+  for (const line of d.lines) {
+    const product = productMap.get(line.productId);
+    if (!product) return { ok: false, message: "A selected product no longer exists." };
+    let variantInfo: string | null = null;
+    if (line.variantId) {
+      const v = product.variants.find((x) => x.id === line.variantId);
+      if (!v) return { ok: false, message: `A selected option for ${product.name} is invalid.` };
+      variantInfo = [v.size, v.colorName ?? v.color?.name].filter(Boolean).join(" / ") || null;
+    }
+    resolved.push({
+      productId: product.id,
+      variantId: line.variantId,
+      productName: product.name,
+      productSku: product.sku,
+      variantInfo,
+      quantity: line.quantity,
+      unitPrice: line.unitPrice,
+      totalPrice: round2(line.unitPrice * line.quantity),
+    });
+  }
+
+  const subtotal = round2(resolved.reduce((s, l) => s + l.totalPrice, 0));
+  const total = Math.max(0, round2(subtotal + d.shippingAmount - d.discountAmount));
+
+  let userId: number | null = null;
+  if (d.customerId) {
+    const cust = await prisma.user.findFirst({
+      where: { id: d.customerId, role: "CUSTOMER" },
+      select: { id: true },
+    });
+    userId = cust?.id ?? null;
+  }
+
+  const adminNote = `Created manually by ${staff.name}${d.source ? ` · source: ${d.source}` : ""}`;
+
+  try {
+    const order = await prisma.$transaction(async (tx) => {
+      for (const l of resolved) {
+        const result = l.variantId
+          ? await tx.productVariant.updateMany({
+              where: { id: l.variantId, stockQuantity: { gte: l.quantity } },
+              data: { stockQuantity: { decrement: l.quantity } },
+            })
+          : await tx.product.updateMany({
+              where: { id: l.productId, stockQuantity: { gte: l.quantity } },
+              data: { stockQuantity: { decrement: l.quantity } },
+            });
+        if (result.count === 0) throw new ManualStockError(l.productName);
+      }
+
+      let created = null;
+      for (let attempt = 0; attempt < 5 && !created; attempt++) {
+        const candidate = generateOrderNumber();
+        try {
+          created = await tx.order.create({
+            data: {
+              storeId: DEFAULT_STORE_ID,
+              userId,
+              orderNumber: candidate,
+              status: d.status,
+              paymentStatus: d.paymentStatus,
+              paymentMethod: d.paymentMethod,
+              subtotal,
+              discountAmount: d.discountAmount,
+              taxAmount: 0,
+              shippingAmount: d.shippingAmount,
+              totalAmount: total,
+              shippingName: d.shippingName,
+              shippingPhone: d.shippingPhone,
+              shippingLine1: d.shippingLine1,
+              shippingLine2: d.shippingLine2 || null,
+              shippingCity: d.shippingCity,
+              shippingState: d.shippingState || null,
+              shippingPostalCode: d.shippingPostalCode || null,
+              shippingCountry: DEFAULT_COUNTRY,
+              billingName: d.shippingName,
+              billingPhone: d.shippingPhone,
+              billingLine1: d.shippingLine1,
+              billingLine2: d.shippingLine2 || null,
+              billingCity: d.shippingCity,
+              billingState: d.shippingState || null,
+              billingPostalCode: d.shippingPostalCode || null,
+              billingCountry: DEFAULT_COUNTRY,
+              notes: d.notes || null,
+              adminNotes: adminNote,
+              items: {
+                create: resolved.map((l) => ({
+                  productId: l.productId,
+                  variantId: l.variantId,
+                  productName: l.productName,
+                  productSku: l.productSku,
+                  variantInfo: l.variantInfo,
+                  quantity: l.quantity,
+                  unitPrice: l.unitPrice,
+                  totalPrice: l.totalPrice,
+                })),
+              },
+            },
+          });
+        } catch (error) {
+          if (attempt === 4 || !isUniqueViolation(error)) throw error;
+        }
+      }
+      if (!created) throw new Error("Could not allocate an order number");
+
+      await tx.payment.create({
+        data: {
+          orderId: created.id,
+          gateway: d.paymentMethod,
+          method: d.paymentMethod,
+          amount: total,
+          currency: "BDT",
+          status: d.paymentStatus === "PAID" ? "PAID" : "PENDING",
+        },
+      });
+
+      return created;
+    });
+
+    revalidatePath("/admin/orders");
+    revalidatePath("/admin");
+    return { ok: true, orderId: order.id, orderNumber: order.orderNumber };
+  } catch (error) {
+    if (error instanceof ManualStockError) {
+      return { ok: false, message: `${error.itemName} doesn't have enough stock.` };
+    }
+    console.error("Manual order creation failed", error);
+    return { ok: false, message: "Could not create the order. Please try again." };
+  }
 }

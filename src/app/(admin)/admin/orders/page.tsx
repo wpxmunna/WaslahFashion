@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { format } from "date-fns";
+import { Plus } from "lucide-react";
 
 import { AdminSearch } from "@/components/admin/admin-search";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   DataTable,
   EmptyState,
@@ -98,6 +101,12 @@ export default async function AdminOrdersPage({
       <PageHeader
         title="Orders"
         description={`${total} order${total === 1 ? "" : "s"}${filtered ? " match this view" : " placed so far"}.`}
+        actions={
+          <Link href="/admin/orders/new" className={cn(buttonVariants(), "gap-1.5")}>
+            <Plus className="size-4" strokeWidth={2} />
+            Create order
+          </Link>
+        }
       />
 
       <Panel>
