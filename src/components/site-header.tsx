@@ -11,6 +11,7 @@ import { getShippingSettings } from "@/lib/settings";
 import { formatPrice } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import { MobileNav } from "./mobile-nav";
+import { MainNav } from "./main-nav";
 import { AccountMenu } from "./account-menu";
 import { SearchField } from "./search-field";
 
@@ -64,45 +65,7 @@ export async function SiteHeader() {
             />
           </Link>
 
-          <nav aria-label="Main" className="ml-8 hidden lg:block">
-            <ul className="flex items-center gap-7">
-              {categories.map((category) => (
-                <li key={category.id} className="group relative">
-                  <Link
-                    href={`/shop/category/${category.slug}`}
-                    className="link-wipe py-2 text-[0.8125rem] font-semibold uppercase tracking-[0.08em]"
-                  >
-                    {category.name}
-                  </Link>
-
-                  {category.children.length > 0 && (
-                    <div className="invisible absolute left-0 top-full z-50 pt-3 opacity-0 transition-opacity duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                      <ul className="min-w-52 rounded-md border border-border bg-popover p-2 shadow-xl">
-                        {category.children.map((child) => (
-                          <li key={child.id}>
-                            <Link
-                              href={`/shop/category/${child.slug}`}
-                              className="block rounded px-3 py-2 text-sm text-popover-foreground transition-colors hover:bg-secondary"
-                            >
-                              {child.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </li>
-              ))}
-              <li>
-                <Link
-                  href="/shop"
-                  className="link-wipe py-2 text-[0.8125rem] font-semibold uppercase tracking-[0.08em]"
-                >
-                  All
-                </Link>
-              </li>
-            </ul>
-          </nav>
+          <MainNav categories={categories} />
 
           <div className="ml-auto flex items-center gap-0.5">
             <div className="hidden md:block">
